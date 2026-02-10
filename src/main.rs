@@ -9,7 +9,13 @@ mod parser;
 fn main() -> ExitCode {
     // read the program
     let args: Vec<String> = env::args().collect();
-    let filename = &args[1];
+    let filename = match args.get(1) {
+        Some(name) => name,
+        None => {
+            eprintln!("FATAL ERROR: No file provided.");
+            return ExitCode::FAILURE;
+        }
+    };
     let program = match fs::read_to_string(filename) {
         Ok(program) => program,
         Err(_) => {
@@ -19,22 +25,8 @@ fn main() -> ExitCode {
     };
 
     // lex the program
-    let tokens = match lexer::lex(&program) {
-        Ok(tokens) => tokens,
-        Err(err) => {
-            eprintln!("FATAL ERROR: {}", error::report_error(err, &program));
-            return ExitCode::FAILURE;
-        }
-    };
+    let tokens = lexer::lex(&program);
 
-    // parse the program
-    let exps = match parser::parse(tokens) {
-        Ok(exps) => exps,
-        Err(err) => {
-            eprintln!("FATAL ERROR: {}", error::report_error(err, &program));
-            return ExitCode::FAILURE;
-        }
-    };
-
+    // println!("{tokens}");
     ExitCode::SUCCESS
 }

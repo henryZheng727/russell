@@ -1,5 +1,5 @@
 use crate::error::Error;
-use crate::lexer::Token;
+use crate::lexer::token::{Token, TokenType};
 
 pub enum Exp {
     Int(i64),
@@ -12,8 +12,8 @@ pub fn parse(tokens: Vec<Token>) -> Result<Vec<Exp>, Error> {
 
     // Read each phrase (separated by semicolons).
     for token in &tokens {
-        match token {
-            Token::Semicolon => match next_expression(&tokens[exp_start..exp_end]) {
+        match token.token_type {
+            TokenType::Semicolon => match next_expression(&tokens[exp_start..exp_end]) {
                 Ok(exp) => {
                     expressions.push(exp);
                     exp_start = exp_end + 1;
