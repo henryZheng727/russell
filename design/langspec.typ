@@ -14,6 +14,7 @@ Russell has the following keywords:
 ```
 echo
 else
+false
 fn
 if
 let
@@ -21,6 +22,7 @@ match
 read
 return
 then
+true
 typedef
 ```
 
