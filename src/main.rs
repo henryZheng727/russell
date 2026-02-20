@@ -25,6 +25,8 @@ fn main() -> ExitCode {
     // lex the program
     let tokens = frontend::lexer::lex(&program);
 
-    println!("{:?}", tokens);
+    for token in &tokens {
+        println!("{:?}", token)
+    }
     ExitCode::SUCCESS
 }

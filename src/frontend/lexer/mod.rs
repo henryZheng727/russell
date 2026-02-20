@@ -27,10 +27,12 @@ const TYPES: [(&str, TokenType); 4] = [
 ];
 
 // operators
-const OPERATORS: [(&str, TokenType); 20] = [
+const OPERATORS: [(&str, TokenType); 23] = [
     // two-char ops
     ("!=", TokenType::NotEq),
+    ("!=", TokenType::NotEq),
     ("&&", TokenType::And),
+    ("->", TokenType::Arrow),
     ("<=", TokenType::LessThanOrEq),
     ("==", TokenType::Eq),
     (">=", TokenType::GreaterThanOrEq),
@@ -45,6 +47,7 @@ const OPERATORS: [(&str, TokenType); 20] = [
     (",", TokenType::Comma),
     ("-", TokenType::Minus),
     ("/", TokenType::Divide),
+    (":", TokenType::Colon),
     (";", TokenType::Semicolon),
     ("<", TokenType::LessThan),
     (">", TokenType::GreaterThan),
@@ -72,7 +75,7 @@ pub fn lex(program: &str) -> Vec<TokenType> {
 // Returns the token, and the rest of the program, which has not been lexed.
 fn next_token(program: &str) -> (TokenType, &str) {
     // eat whitespace at the start, and use first char to determine token type
-    let program = program.trim_start();
+    let program = eat_whitespace(program);
     let first_char = match program.chars().next() {
         Some(c) => c,
         None => return (TokenType::EoF, program),
@@ -99,6 +102,23 @@ fn next_token(program: &str) -> (TokenType, &str) {
     (TokenType::Invalid(first_char), &program[1..])
 }
 
+fn eat_whitespace(program: &str) -> &str {
+    let trimmed = program.trim_start();
+    if !trimmed.starts_with("//") {
+        return trimmed;
+    }
+
+    let mut after_comment = 0;
+    for (index, char) in trimmed.char_indices() {
+        if char == '\n' {
+            after_comment = index + 1;
+            break;
+        }
+    }
+
+    return &trimmed[after_comment..];
+}
+
 fn read_num(program: &str) -> (TokenType, &str) {
     // greedily grab all characters until we see something that's not a digit
     let mut first_non_digit = program.len();
@@ -118,7 +138,7 @@ fn read_num(program: &str) -> (TokenType, &str) {
 }
 
 fn is_digit(c: char) -> bool {
-    (c > '0') || (c < '9') || (c == '.')
+    (c >= '0' && c <= '9') || (c == '.')
 }
 
 fn read_ident(program: &str) -> (TokenType, &str) {
@@ -151,5 +171,5 @@ fn read_ident(program: &str) -> (TokenType, &str) {
 
 // determines whether a character is a letter
 fn is_letter(c: char) -> bool {
-    (c > 'a' && c < 'z') || (c > '0' && c < '9')
+    (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || (c == '_')
 }

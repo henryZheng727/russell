@@ -32,6 +32,9 @@ pub enum TokenType {
     // punctuation
     LParen,
     RParen,
+    Comma,
+    Arrow,
+    Colon,
     Semicolon,
     LBrace,
     RBrace,
@@ -42,7 +45,6 @@ pub enum TokenType {
     And,
     Times,
     Plus,
-    Comma,
     Minus,
     Divide,
     LessThan,

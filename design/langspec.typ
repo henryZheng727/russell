@@ -45,7 +45,9 @@ Russell has the following reserved symbols:
 +
 ,
 -
+->
 /
+:
 ;
 <
 <=

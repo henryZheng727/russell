@@ -1,8 +1,10 @@
+// custom boolean type
 typedef custom_bool {
     c_true(),
     c_false()
 }
 
+// into a normal bool
 fn convert_to_normal(x: custom_bool) -> bool {
     return match x {
         c_true() -> true,
@@ -10,6 +12,7 @@ fn convert_to_normal(x: custom_bool) -> bool {
     };
 }
 
+// ternaries for all builtin types using the custom bool
 fn custom_if_u64(cond: custom_bool, then_b: u64, else_b: u64) -> u64 {
     return match cond {
         c_true() -> then_b,
@@ -31,6 +34,7 @@ fn custom_if_f64(cond: custom_bool, then_b: f64, else_b: f64) -> f64 {
     };
 }
 
+// main function to test everything
 fn main() -> i64 {
     echo bool convert_to_normal(c_true());
     echo bool convert_to_normal(c_false());
