@@ -1,10 +1,5 @@
-pub struct Token {
-    pub offset: usize,
-    pub token_type: TokenType,
-}
-
 #[derive(Debug)]
-pub enum TokenType {
+pub enum Token {
     // primitive values
     Id(String),
     Int(u64),
@@ -24,10 +19,10 @@ pub enum TokenType {
     Typedef,
 
     // type keywords
-    U64Type,
-    I64Type,
-    F64Type,
+    IntType,
+    FloatType,
     BoolType,
+    TypeId(String),
 
     // punctuation
     LParen,

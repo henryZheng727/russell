@@ -1,4 +1,8 @@
-== Syntax
+#show heading: set align(center)
+
+= Russell
+
+== Lexical Syntax
 Comments start from a `//` and occur until a newline character.
 
 Russell has the following primitive data:
@@ -7,7 +11,8 @@ Russell has the following primitive data:
 <float>   ::= [0-9]+.[0-9]+
 <bool>    ::= true
             | false
-<id>      ::= [a-z]+[a-z0-9_]*
+<id>      ::= [a-z][a-zA-Z0-9_]*
+<typeId>  ::= [A-Z][A-Za-z]*
 ```
 
 Russell has the following keywords:
@@ -28,10 +33,9 @@ typedef
 
 ...and the following type keywords:
 ```
-u64
-i64
-f64
-bool
+Int
+Float
+Bool
 ```
 
 Russell has the following reserved symbols:
@@ -60,47 +64,122 @@ Russell has the following reserved symbols:
 }
 ```
 
-== Grammar
+== Syntax
 A Russell program is a list of definitions, and obeys the following grammar.
 ```
-<defn> ::= typedef <id> { <id> ( <binding> , ... ) , ... };
+<defn> ::= typedef <typeId> { <id> ( <binding> , ... ) , ... };
          | fn <id>( <binding> , ... ) -> <type> { <stmnt>; ... }
 
-<stmnt> ::= let <id> = <exp>;
+<stmnt> ::= let <id> = <expr>;
           | read <type> <id>;
-          | echo <type> <exp>;
-          | return <exp>;
+          | echo <type> <expr>;
+          | return <expr>;
 
-<exp> ::= <integer>
-        | <float>
-        | <bool>
-        | <id>
-        | fn ( <binding> ) -> <exp>
-        | - <exp>
-        | ! <exp>
-        | <exp>(<exp>)
-        | <exp> + <exp>
-        | <exp> - <exp>
-        | <exp> * <exp>
-        | <exp> / <exp>
-        | <exp> |> <exp>
-        | <exp> < <exp>
-        | <exp> <= <exp>
-        | <exp> > <exp>
-        | <exp> >= <exp>
-        | <exp> == <exp>
-        | <exp> != <exp>
-        | <exp> && <exp>
-        | <exp> || <exp>
-        | if <exp> then <exp> else <exp>
-        | ( <exp> )
-        | match <exp> { <id> ( <binding> , ...) -> <exp> , ... }
+<expr> ::= <integer>
+         | <float>
+         | <bool>
+         | <id>
+         | fn ( <binding> ) -> <expr>
+         | - <expr>
+         | ! <expr>
+         | <expr>(<expr>)
+         | <expr> + <expr>
+         | <expr> - <expr>
+         | <expr> * <expr>
+         | <expr> / <expr>
+         | <expr> |> <expr>
+         | <expr> < <expr>
+         | <expr> <= <expr>
+         | <expr> > <expr>
+         | <expr> >= <expr>
+         | <expr> == <expr>
+         | <expr> != <expr>
+         | <expr> || <expr>
+         | <expr> && <expr>
+         | if <expr> then <expr> else <expr>
+         | ( <expr> )
+         | match <expr> { <id> ( <binding> , ...) -> <expr> , ... }
 
-<type> ::= u64
-         | i64
-         | f64
-         | bool
+<type> ::= Int
+         | Float
+         | Bool
+         | <typeId>
          | <type> -> <type>
 
 <binding> ::= <id> : <type>
 ```
+
+== Semantics
+Here we define the expected output of a Russell program.
+
+=== Definitions
+A special function, `fn main() -> Int` is the entry point of the program. All statements in `main` will be executed sequentially.
+
+=== Statements
+
+=== Expressions
+Integers, floats, and booleans are in their canonical form.
+
+Identifiers will be replaced by the value they represent, stored in the current environment.
+
+A closure represents a function with a single argument. It captures the environment at the time of creation, and thus its sub-expression may reference variables in the enclosing environment.
+
+Expressions of the form `- <A>` will evaluate to an expression equivalent to `0 - <A>`. Expressions of the form `! <B>` will evaluate to an expression equivalent to `if <B> then false else true`.
+
+Expressions of the form `<B> (<A>)` will // todo
+
+Expressions of the form `<A> + <B>` are:
+- If `<A>` and `<B>` both evaluate to integers, the integer `<A> + <B>`
+- If `<A>` and `<B>` both evaluate to floats, the integer `<A> + <B>`
+- Otherwise, the expression will cause a type error.
+
+Expressions of the form `<A> - <B>` are:
+- If `<A>` and `<B>` both evaluate to integers, the integer `<A> - <B>`
+- If `<A>` and `<B>` both evaluate to floats, the integer `<A> - <B>`
+- Otherwise, the expression will cause a type error.
+
+Expressions of the form `<A> * <B>` are:
+- If `<A>` and `<B>` both evaluate to integers, the integer `<A> * <B>`
+- If `<A>` and `<B>` both evaluate to floats, the integer `<A> * <B>`
+- Otherwise, the expression will cause a type error.
+
+Expressions of the form `<A> / <B>` are:
+- If `<A>` and `<B>` both evaluate to integers, the integer `<A> / <B>`
+- If `<A>` and `<B>` both evaluate to floats, the integer `<A> / <B>`
+- Otherwise, the expression will cause a type error.
+
+Expressions of the form `<A> |> <B>` will evaluate to an expression equivalent to `<B>(<A>)`. Note that this will cause an error if `<B>` does not have an arity of one.
+
+Expressions of the form `<A> < <B>` are:
+- If `<A>` and `<B>` both evaluate to integers, the Boolean true if and only if `<A>` is less than `<B>`.
+- If `<A>` and `<B>` both evaluate to floats, the Boolean true if and only if `<A>` is less than `<B>`.
+- Otherwise, the expression will cause a type error.
+
+Expressions of the form `<A> <= <B>` will evaluate to an expression equivalent to `<A> < <B> || <A> == <B>`.
+
+Expressions of the form `<A> > <B>` are:
+- If `<A>` and `<B>` both evaluate to integers, the Boolean true if and only if `<A>` is greater than `<B>`.
+- If `<A>` and `<B>` both evaluate to floats, the Boolean true if and only if `<A>` is greater than `<B>`.
+- Otherwise, the expression will cause a type error.
+
+Expressions of the form `<A> >= <B>` will evaluate to an expression equivalent to `<A> < <B> || <A> == <B>`.
+
+Expressions of the form `<A> == <B>` are:
+- If `<A>` and `<B>` both evaluate to integers, the Boolean true if and only if `<A>` is equal to `<B>`.
+- If `<A>` and `<B>` both evaluate to floats, the Boolean true if and only if `<A>` is equal to `<B>`.
+- Otherwise, the expression will cause a type error.
+
+Expressions of the form `<A> != <B>` will evaluate to an expression equivalent to `! (<A> == <B>)`.
+
+Expressions of the form `<A> || <B>` will evaluate to an expression equivalent to `if <A> then true else <B>`.
+
+Expressions of the form `<A> && <B>` will evaluate to an expression equivalent to `if <A> then <B> else false`.
+
+Expressions of the form `if <A> then <B> else <C>` will evaluate to:
+- If `<A>` is a Boolean and `<A>` is true, then `<B>`
+- If `<A>` is a Boolean and `<A>` is false, then `<C>`
+- Otherwise, the expression will cause a type error.
+
+Expressions of the form `( <expr> )` will evaluate to an expression equivalent to `<expr>`.
+
+=== Standard Library

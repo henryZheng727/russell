@@ -1,62 +1,60 @@
 pub mod token;
 
-use crate::frontend::lexer::token::{Token, TokenType};
+use crate::frontend::lexer::token::Token;
 
 // reserved keywords
-const KEYWORDS: [(&str, TokenType); 12] = [
-    ("echo", TokenType::Echo),
-    ("else", TokenType::Else),
-    ("false", TokenType::Bool(false)),
-    ("fn", TokenType::Fn),
-    ("if", TokenType::If),
-    ("let", TokenType::Let),
-    ("match", TokenType::Match),
-    ("read", TokenType::Read),
-    ("return", TokenType::Return),
-    ("then", TokenType::Then),
-    ("true", TokenType::Bool(true)),
-    ("typedef", TokenType::Typedef),
+const KEYWORDS: [(&str, Token); 12] = [
+    ("echo", Token::Echo),
+    ("else", Token::Else),
+    ("false", Token::Bool(false)),
+    ("fn", Token::Fn),
+    ("if", Token::If),
+    ("let", Token::Let),
+    ("match", Token::Match),
+    ("read", Token::Read),
+    ("return", Token::Return),
+    ("then", Token::Then),
+    ("true", Token::Bool(true)),
+    ("typedef", Token::Typedef),
 ];
 
 // type keywords
-const TYPES: [(&str, TokenType); 4] = [
-    ("u64", TokenType::U64Type),
-    ("i64", TokenType::I64Type),
-    ("f64", TokenType::F64Type),
-    ("bool", TokenType::BoolType),
+const TYPES: [(&str, Token); 3] = [
+    ("Int", Token::IntType),
+    ("Float", Token::FloatType),
+    ("Bool", Token::BoolType),
 ];
 
 // operators
-const OPERATORS: [(&str, TokenType); 23] = [
+const OPERATORS: [(&str, Token); 22] = [
     // two-char ops
-    ("!=", TokenType::NotEq),
-    ("!=", TokenType::NotEq),
-    ("&&", TokenType::And),
-    ("->", TokenType::Arrow),
-    ("<=", TokenType::LessThanOrEq),
-    ("==", TokenType::Eq),
-    (">=", TokenType::GreaterThanOrEq),
-    ("|>", TokenType::Pipe),
-    ("||", TokenType::Or),
+    ("!=", Token::NotEq),
+    ("&&", Token::And),
+    ("->", Token::Arrow),
+    ("<=", Token::LessThanOrEq),
+    ("==", Token::Eq),
+    (">=", Token::GreaterThanOrEq),
+    ("|>", Token::Pipe),
+    ("||", Token::Or),
     // one-char ops
-    ("!", TokenType::Not),
-    ("(", TokenType::LParen),
-    (")", TokenType::RParen),
-    ("*", TokenType::Times),
-    ("+", TokenType::Plus),
-    (",", TokenType::Comma),
-    ("-", TokenType::Minus),
-    ("/", TokenType::Divide),
-    (":", TokenType::Colon),
-    (";", TokenType::Semicolon),
-    ("<", TokenType::LessThan),
-    (">", TokenType::GreaterThan),
-    ("{", TokenType::LBrace),
-    ("}", TokenType::RBrace),
+    ("!", Token::Not),
+    ("(", Token::LParen),
+    (")", Token::RParen),
+    ("*", Token::Times),
+    ("+", Token::Plus),
+    (",", Token::Comma),
+    ("-", Token::Minus),
+    ("/", Token::Divide),
+    (":", Token::Colon),
+    (";", Token::Semicolon),
+    ("<", Token::LessThan),
+    (">", Token::GreaterThan),
+    ("{", Token::LBrace),
+    ("}", Token::RBrace),
 ];
 
 /// Given the entire program as a string, lexes it into a vector of tokens.
-pub fn lex(program: &str) -> Vec<TokenType> {
+pub fn lex(program: &str) -> Vec<Token> {
     let mut tokens = Vec::new();
     let mut token;
     let mut rest_program = program;
@@ -64,21 +62,21 @@ pub fn lex(program: &str) -> Vec<TokenType> {
 
     while !done_lexing {
         (token, rest_program) = next_token(rest_program);
-        done_lexing = matches!(token, TokenType::EoF);
+        done_lexing = matches!(token, Token::EoF);
         tokens.push(token);
     }
 
     tokens
 }
 
-// Lexes the next token in the given program.
-// Returns the token, and the rest of the program, which has not been lexed.
-fn next_token(program: &str) -> (TokenType, &str) {
+/// Lexes the next token in the given program.
+/// Returns the token, and the rest of the program, which has not been lexed.
+fn next_token(program: &str) -> (Token, &str) {
     // eat whitespace at the start, and use first char to determine token type
     let program = eat_whitespace(program);
     let first_char = match program.chars().next() {
         Some(c) => c,
-        None => return (TokenType::EoF, program),
+        None => return (Token::EoF, program),
     };
 
     // determine if the token is an operator
@@ -89,19 +87,25 @@ fn next_token(program: &str) -> (TokenType, &str) {
     }
 
     // determine if the token is a float/int
-    if is_digit(first_char) {
+    if first_char.is_digit(10) {
         return read_num(program);
     }
 
     // determine if the token is a keyword or variable
-    if is_letter(first_char) {
+    if first_char.is_lowercase() {
         return read_ident(program);
     }
 
+    // determine if the token is a type identifier
+    if first_char.is_uppercase() {
+        return read_type_ident(program);
+    }
+
     // otherwise, the token is invalid
-    (TokenType::Invalid(first_char), &program[1..])
+    (Token::Invalid(first_char), &program[1..])
 }
 
+/// Discards any whitespace or comments at the start of `program`.
 fn eat_whitespace(program: &str) -> &str {
     let trimmed = program.trim_start();
     if !trimmed.starts_with("//") {
@@ -119,11 +123,11 @@ fn eat_whitespace(program: &str) -> &str {
     return &trimmed[after_comment..];
 }
 
-fn read_num(program: &str) -> (TokenType, &str) {
+fn read_num(program: &str) -> (Token, &str) {
     // greedily grab all characters until we see something that's not a digit
     let mut first_non_digit = program.len();
     for (index, char) in program.char_indices() {
-        if !is_digit(char) {
+        if !char.is_digit(10) {
             first_non_digit = index;
             break;
         }
@@ -132,20 +136,16 @@ fn read_num(program: &str) -> (TokenType, &str) {
     let rest = &program[first_non_digit..];
 
     match digits.find('.') {
-        Some(_) => (TokenType::Float(digits.parse::<f64>().unwrap()), rest),
-        None => (TokenType::Int(digits.parse::<u64>().unwrap()), rest),
+        Some(_) => (Token::Float(digits.parse::<f64>().unwrap()), rest),
+        None => (Token::Int(digits.parse::<u64>().unwrap()), rest),
     }
 }
 
-fn is_digit(c: char) -> bool {
-    (c >= '0' && c <= '9') || (c == '.')
-}
-
-fn read_ident(program: &str) -> (TokenType, &str) {
+fn read_ident(program: &str) -> (Token, &str) {
     // greedily grab all characters until we see something that's not a letter
     let mut first_non_letter = program.len();
     for (index, char) in program.char_indices() {
-        if !is_letter(char) {
+        if !(char.is_alphanumeric() || char == '_') {
             first_non_letter = index;
             break;
         }
@@ -160,16 +160,27 @@ fn read_ident(program: &str) -> (TokenType, &str) {
         }
     }
 
+    (Token::Id(ident.to_string()), rest)
+}
+
+fn read_type_ident(program: &str) -> (Token, &str) {
+    // greedily grab all characters until we see something that's not a letter
+    let mut first_non_letter = program.len();
+    for (index, char) in program.char_indices() {
+        if !char.is_alphabetic() {
+            first_non_letter = index;
+            break;
+        }
+    }
+    let ident = &program[..first_non_letter];
+    let rest = &program[first_non_letter..];
+
+    // check against keywords, fallback to identifier (varable) if no match
     for (type_str, type_token) in TYPES {
         if ident == type_str {
             return (type_token, rest);
         }
     }
 
-    (TokenType::Id(ident.to_string()), rest)
-}
-
-// determines whether a character is a letter
-fn is_letter(c: char) -> bool {
-    (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || (c == '_')
+    (Token::TypeId(ident.to_string()), rest)
 }

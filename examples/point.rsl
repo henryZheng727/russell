@@ -1,34 +1,34 @@
-typedef point_t {
-    point(x: i64, y: i64)
+typedef Point {
+    point(x: Int, y: Int)
 }
 
-fn sum(first: point_t, second: point_t) -> point_t {
+fn sum(first: Point, second: Point) -> Point {
     let first_x = match first {
-        point(x: i64, y: i64) -> x;
+        point(x: Int, y: Int) -> x;
     };
     let first_y = match first {
-        point(x: i64, y: i64) -> y;
+        point(x: Int, y: Int) -> y;
     };
     let second_x = match second {
-        point(x: i64, y: i64) -> x;
+        point(x: Int, y: Int) -> x;
     };
     let second_y = match second {
-        point(x: i64, y: i64) -> y;
+        point(x: Int, y: Int) -> y;
     };
     return point(first_x + second_x, first_y + second_y);
 }
 
-fn main() -> i64 {
+fn main() -> Int {
     let p1 = point(1, 2);
     let p2 = point(3, 4);
     let p3 = sum(p1, p2);
     let x = match p3 {
-        point(x: i64, y: i64) -> x;
+        point(x: Int, y: Int) -> x;
     }
     let y = match p3 {
-        point(x: i64, y: i64) -> y;
+        point(x: Int, y: Int) -> y;
     }
-    echo i64 x;
-    echo i64 y;
+    echo Int x;
+    echo Int y;
     return 0;
 }
