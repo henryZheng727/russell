@@ -2,7 +2,8 @@ use std::env;
 use std::fs;
 use std::process::ExitCode;
 
-mod frontend;
+use russell::frontend::{lexer, parser};
+use russell::interpreter::treewalk;
 
 fn main() -> ExitCode {
     // read the program
@@ -23,10 +24,15 @@ fn main() -> ExitCode {
     };
 
     // lex the program
-    let tokens = frontend::lexer::lex(&program);
+    let tokens = lexer::lex(&program);
 
     for token in &tokens {
         println!("{:?}", token)
     }
-    ExitCode::SUCCESS
+
+    // parse the program
+    let defns = parser::parse(tokens);
+
+    // interpret the program
+    treewalk::interp(defns)
 }
