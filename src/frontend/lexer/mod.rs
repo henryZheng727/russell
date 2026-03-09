@@ -87,7 +87,7 @@ fn next_token(program: &str) -> (Token, &str) {
     }
 
     // determine if the token is a float/int
-    if first_char.is_digit(10) {
+    if first_char.is_ascii_digit() {
         return read_num(program);
     }
 
@@ -120,14 +120,14 @@ fn eat_whitespace(program: &str) -> &str {
         }
     }
 
-    return &trimmed[after_comment..];
+    &trimmed[after_comment..]
 }
 
 fn read_num(program: &str) -> (Token, &str) {
     // greedily grab all characters until we see something that's not a digit
     let mut first_non_digit = program.len();
     for (index, char) in program.char_indices() {
-        if !char.is_digit(10) {
+        if !char.is_ascii_digit() {
             first_non_digit = index;
             break;
         }

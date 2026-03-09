@@ -1,13 +1,16 @@
 pub enum Defn {
+    // typedef <typeId> { <id> ( <binding> , ... ) , ... };
+    Typedef(String, Vec<(String, Vec<Binding>)>),
+
+    // fn <id>( <binding> , ... ) -> <type> { <stmnt>; ... }
     Fn(String, Vec<Binding>, Type, Vec<Stmnt>),
 }
 
 pub enum Stmnt {
-    Let(Type, Expr),
-    Read(Type, Expr),
-    Echo(Type, Expr),
-    Return(Expr),
-    Invalid,
+    Let(String, Expr),  // let <id> = <expr>;
+    Read(Type, String), // read <type> <id>;
+    Echo(Type, Expr),   // echo <type> <expr>;
+    Return(Expr),       // return <expr>;
 }
 
 pub enum Expr {
@@ -44,19 +47,22 @@ pub enum Expr {
     Or(Box<Expr>, Box<Expr>),      // <left> || <right>
     And(Box<Expr>, Box<Expr>),     // <left> && <right>
 
-    // if expressions
-    If(Box<Expr>, Box<Expr>, Box<Expr>), // if <1> then <2> else <3>
+    // if <1> then <2> else <3>
+    If(Box<Expr>, Box<Expr>, Box<Expr>),
+
+    // match <expr> { <id>(<bindings>) -> <expr>, ... }
+    Match(Box<Expr>, Vec<(String, Vec<Binding>, Expr)>),
 }
 
 pub enum Type {
-    I64,
-    F64,
+    Int,
+    Float,
     Bool,
     TypeId(String),
     Fn(Box<Type>, Box<Type>),
 }
 
 pub struct Binding {
-    id: String,
-    typ: Type,
+    pub id: String,
+    pub typ: Type,
 }
