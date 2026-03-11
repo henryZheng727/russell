@@ -67,7 +67,7 @@ Russell has the following reserved symbols:
 == Syntax
 A Russell program is a list of definitions, and obeys the following grammar.
 ```
-<defn> ::= typedef <typeId> { <id> ( <binding> , ... ) , ... };
+<defn> ::= typedef <typeId> { <id> ( <binding> , ... ) , ... }
          | fn <id>( <binding> , ... ) -> <type> { <stmnt>; ... }
 
 <stmnt> ::= let <id> = <expr>;

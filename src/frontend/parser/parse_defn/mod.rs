@@ -1,6 +1,79 @@
-use crate::frontend::lexer::token::Token;
-use crate::frontend::parser::ast::Defn;
+use crate::frontend::lexer::token::{Token, TokenKind};
+use crate::frontend::parser::ast::{Binding, Defn};
+use crate::frontend::parser::parse_stmnt::parse_stmnt;
+use crate::frontend::parser::parse_type::{parse_binding_list, parse_type};
+use crate::frontend::parser::{ParseError, ParseResult, Parser};
 
-pub(super) fn parse_defn(tokens: &[Token]) -> (Defn, Token) {
-    unimplemented!()
+pub(super) fn parse_defn(parser: &mut Parser) -> ParseResult<Defn> {
+    match parser.peek() {
+        Token::Fn => parse_fndef(parser),
+        Token::Typedef => parse_typedef(parser),
+        _ => ParseError::new(TokenKind::Fn, parser.peek().clone()),
+        // TODO - improve error handling here
+    }
+}
+
+/// Parses a type definition:
+/// typedef <typeId> { <id>(<binding, ...), ... };
+fn parse_typedef(parser: &mut Parser) -> ParseResult<Defn> {
+    // parse the declaration
+    parser.expect(TokenKind::Typedef)?;
+    let name = match parser.expect(TokenKind::TypeId)? {
+        Token::TypeId(id) => id,
+        _ => unreachable!(),
+    };
+
+    // Typedef(String, Vec<(String, Vec<Binding>)>)
+
+    // parse all product types in the ADT
+    let mut signatures = Vec::new();
+    while !matches!(parser.peek(), Token::RBrace) {
+        match parse_fn_sig(parser) {
+            Ok(signature) => signatures.push(signature),
+            Err(_) => unimplemented!(), // TODO improve error handling
+        }
+    }
+
+    parser.expect(TokenKind::RBrace)?;
+
+    Ok(Defn::Typedef(name, signatures))
+}
+
+/// Parses a function definition:
+/// fn <id>(<binding>, ...) -> <type> { <stmnt>, ... };
+fn parse_fndef(parser: &mut Parser) -> ParseResult<Defn> {
+    // parse the function header (identifier, bindings, return type)
+    parser.expect(TokenKind::Fn)?;
+    let header = parse_fn_sig(parser)?;
+    parser.expect(TokenKind::Arrow)?;
+    let return_type = parse_type(parser)?;
+
+    // parse the function body (LBrace, statements, RBrace, Semicolon)
+    parser.expect(TokenKind::LBrace)?;
+
+    let mut statements = Vec::new();
+    while !matches!(parser.peek(), Token::RBrace) {
+        match parse_stmnt(parser) {
+            Ok(stmnt) => statements.push(stmnt),
+            Err(_) => unimplemented!(), // TODO improve error handling
+        }
+    }
+
+    parser.expect(TokenKind::RBrace)?;
+
+    Ok(Defn::Fn(header.0, header.1, return_type, statements))
+}
+
+/// Parse a function signature: <id>(<binding>, ...)
+/// Returns the ID and a list of bindings if successful.
+/// Returns an error otherwise.
+fn parse_fn_sig(parser: &mut Parser) -> ParseResult<(String, Vec<Binding>)> {
+    let id = match parser.expect(TokenKind::Id)? {
+        Token::Id(str) => str,
+        _ => unreachable!(),
+    };
+
+    let bindings = parse_binding_list(parser)?;
+
+    Ok((id, bindings))
 }

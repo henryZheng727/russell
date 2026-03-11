@@ -5,6 +5,9 @@ mod parse_expr;
 mod parse_stmnt;
 mod parse_type;
 
+use std::iter::Peekable;
+use std::vec::IntoIter;
+
 use crate::frontend::lexer::token::{Token, TokenKind};
 use crate::frontend::parser::ast::Defn;
 use crate::frontend::parser::parse_defn::parse_defn;
@@ -24,41 +27,41 @@ pub fn parse(tokens: Vec<Token>) -> Vec<Defn> {
 }
 
 pub struct Parser {
-    pub tokens: Vec<Token>,
-    pub offset: usize,
+    pub tokens: Peekable<IntoIter<Token>>,
 }
 
 impl Parser {
     pub fn new(tokens: Vec<Token>) -> Parser {
-        Parser { tokens, offset: 0 }
+        Parser {
+            tokens: tokens.into_iter().peekable(),
+        }
     }
 
-    pub fn expect(&mut self, expected: TokenKind) -> ParseResult<()> {
+    pub fn expect(&mut self, expected: TokenKind) -> ParseResult<Token> {
         if self.peek().kind() == expected {
-            self.advance();
-            Ok(())
+            Ok(self.tokens.next().unwrap())
         } else {
             ParseError::new(expected, self.peek().clone())
         }
     }
 
-    pub fn advance(&mut self) {
-        self.offset += 1;
-    }
-
     pub fn peek(&mut self) -> &Token {
-        &self.tokens[self.offset]
+        // EoF sentinel ensures this is always Some
+        self.tokens.peek().unwrap()
     }
 }
 
 pub struct ParseError {
-    expected: TokenKind,
+    expected: Vec<TokenKind>,
     actual: Token,
 }
 
 impl ParseError {
     pub fn new<A>(expected: TokenKind, actual: Token) -> ParseResult<A> {
-        Err(ParseError { expected, actual })
+        Err(ParseError {
+            expected: vec![expected],
+            actual,
+        })
     }
 }
 
