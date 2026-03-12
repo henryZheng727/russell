@@ -8,8 +8,7 @@ pub(super) fn parse_defn(parser: &mut Parser) -> ParseResult<Defn> {
     match parser.peek() {
         Token::Fn => parse_fndef(parser),
         Token::Typedef => parse_typedef(parser),
-        _ => ParseError::new(TokenKind::Fn, parser.peek().clone()),
-        // TODO - improve error handling here
+        _ => ParseError::many(vec![TokenKind::Fn, TokenKind::Typedef], parser.peek().clone()),
     }
 }
 
@@ -22,12 +21,13 @@ fn parse_typedef(parser: &mut Parser) -> ParseResult<Defn> {
         Token::TypeId(id) => id,
         _ => unreachable!(),
     };
+    parser.expect(TokenKind::LBrace)?;
 
     // Typedef(String, Vec<(String, Vec<Binding>)>)
 
     // parse all product types in the ADT
     let mut signatures = Vec::new();
-    while !matches!(parser.peek(), Token::RBrace) {
+    while parser.peek().kind() != TokenKind::RBrace {
         match parse_fn_sig(parser) {
             Ok(signature) => signatures.push(signature),
             Err(_) => unimplemented!(), // TODO improve error handling
@@ -52,7 +52,7 @@ fn parse_fndef(parser: &mut Parser) -> ParseResult<Defn> {
     parser.expect(TokenKind::LBrace)?;
 
     let mut statements = Vec::new();
-    while !matches!(parser.peek(), Token::RBrace) {
+    while parser.peek().kind() != TokenKind::RBrace {
         match parse_stmnt(parser) {
             Ok(stmnt) => statements.push(stmnt),
             Err(_) => unimplemented!(), // TODO improve error handling

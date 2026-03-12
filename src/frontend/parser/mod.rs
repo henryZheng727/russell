@@ -23,11 +23,11 @@ pub fn parse(tokens: Vec<Token>) -> Vec<Defn> {
         }
     }
 
-    return defns;
+    defns
 }
 
 pub struct Parser {
-    pub tokens: Peekable<IntoIter<Token>>,
+    tokens: Peekable<IntoIter<Token>>,
 }
 
 impl Parser {
@@ -62,6 +62,7 @@ impl Parser {
 }
 
 pub struct ParseError {
+    // TODO - should implement Error
     expected: Vec<TokenKind>,
     actual: Token,
 }

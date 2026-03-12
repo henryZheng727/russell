@@ -137,7 +137,7 @@ fn read_num(program: &str) -> (Token, &str) {
 
     match digits.find('.') {
         Some(_) => (Token::Float(digits.parse::<f64>().unwrap()), rest),
-        None => (Token::Int(digits.parse::<u64>().unwrap()), rest),
+        None => (Token::Int(digits.parse::<i64>().unwrap()), rest),
     }
 }
 

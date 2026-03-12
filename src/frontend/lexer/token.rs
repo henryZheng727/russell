@@ -2,7 +2,7 @@
 pub enum Token {
     // primitive values
     Id(String),
-    Int(u64),
+    Int(i64),
     Float(f64),
     Bool(bool),
 

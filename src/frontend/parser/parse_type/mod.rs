@@ -3,20 +3,22 @@ use crate::frontend::parser::ast::{Binding, Type};
 use crate::frontend::parser::{ParseError, ParseResult, Parser};
 
 pub(super) fn parse_type(parser: &mut Parser) -> ParseResult<Type> {
-    // parse a type
-    let l_type = match parser.peek() {
+    // parse an atomic type
+    let l_type = match parser.expect_many(vec![
+        TokenKind::IntType,
+        TokenKind::FloatType,
+        TokenKind::BoolType,
+        TokenKind::TypeId,
+    ])? {
         Token::IntType => Type::Int,
         Token::FloatType => Type::Float,
         Token::BoolType => Type::Bool,
         Token::TypeId(id) => Type::TypeId(id.clone()),
-        _ => {
-            return ParseError::new(TokenKind::IntType, parser.peek().clone());
-            // TODO error handling here also sucks right now
-        }
+        _ => unreachable!(),
     };
 
     // if we see an arrow, parse the right-hand side of the function type
-    if matches!(parser.peek(), Token::Arrow) {
+    if parser.peek().kind() == TokenKind::Arrow {
         parser.expect(TokenKind::Arrow)?;
         let r_type = parse_type(parser)?;
         return Ok(Type::Fn(Box::from(l_type), Box::from(r_type)));
