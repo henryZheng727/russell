@@ -39,5 +39,18 @@ pub(super) fn parse_binding(parser: &mut Parser) -> ParseResult<Binding> {
 }
 
 pub(super) fn parse_binding_list(parser: &mut Parser) -> ParseResult<Vec<Binding>> {
-    unimplemented!()
+    parser.expect(TokenKind::LParen)?;
+
+    let mut bindings = Vec::new();
+
+    if parser.peek().kind() != TokenKind::RParen {
+        bindings.push(parse_binding(parser)?);
+        while parser.peek().kind() == TokenKind::Comma {
+            parser.expect(TokenKind::Comma)?;
+            bindings.push(parse_binding(parser)?);
+        }
+    }
+
+    parser.expect(TokenKind::RParen)?;
+    Ok(bindings)
 }
