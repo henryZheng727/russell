@@ -1,3 +1,5 @@
+use crate::frontend::lexer::token::Token;
+
 pub enum Defn {
     // typedef <typeId> { <id> ( <binding> , ... ) , ... };
     Typedef(String, Vec<(String, Vec<Binding>)>),
@@ -30,28 +32,50 @@ pub enum Expr {
     Bang(Box<Expr>), // ! <exp>
 
     // function calls
-    Call(Box<Expr>, Box<Expr>), // <left>(<right>)
+    Call(Box<Expr>, Vec<Expr>), // <left>(<right>, ...)
 
     // binary operators
-    Plus(Box<Expr>, Box<Expr>),    // <left> + <right>
-    Minus(Box<Expr>, Box<Expr>),   // <left> - <right>
-    Mult(Box<Expr>, Box<Expr>),    // <left> * <right>
-    Div(Box<Expr>, Box<Expr>),     // <left> / <right>
-    Pipe(Box<Expr>, Box<Expr>),    // <left> |> <right>
-    Less(Box<Expr>, Box<Expr>),    // <left> < <right>
-    LessEq(Box<Expr>, Box<Expr>),  // <left> <= <right>
-    Greater(Box<Expr>, Box<Expr>), // <left> > <right>
+    Plus(Box<Expr>, Box<Expr>),      // <left> + <right>
+    Minus(Box<Expr>, Box<Expr>),     // <left> - <right>
+    Mult(Box<Expr>, Box<Expr>),      // <left> * <right>
+    Div(Box<Expr>, Box<Expr>),       // <left> / <right>
+    Pipe(Box<Expr>, Box<Expr>),      // <left> |> <right>
+    Less(Box<Expr>, Box<Expr>),      // <left> < <right>
+    LessEq(Box<Expr>, Box<Expr>),    // <left> <= <right>
+    Greater(Box<Expr>, Box<Expr>),   // <left> > <right>
     GreaterEq(Box<Expr>, Box<Expr>), // <left> >= <right>
-    Eq(Box<Expr>, Box<Expr>),      // <left> == <right>
-    NotEq(Box<Expr>, Box<Expr>),   // <left> != <right>
-    Or(Box<Expr>, Box<Expr>),      // <left> || <right>
-    And(Box<Expr>, Box<Expr>),     // <left> && <right>
+    Eq(Box<Expr>, Box<Expr>),        // <left> == <right>
+    NotEq(Box<Expr>, Box<Expr>),     // <left> != <right>
+    Or(Box<Expr>, Box<Expr>),        // <left> || <right>
+    And(Box<Expr>, Box<Expr>),       // <left> && <right>
 
     // if <1> then <2> else <3>
     If(Box<Expr>, Box<Expr>, Box<Expr>),
 
     // match <expr> { <id>(<bindings>) -> <expr>, ... }
     Match(Box<Expr>, Vec<(String, Vec<Binding>, Expr)>),
+}
+
+impl Expr {
+    pub fn binop(op: Token, left: Expr, right: Expr) -> Expr {
+        let (left, right) = (Box::new(left), Box::new(right));
+        match op {
+            Token::Plus => Expr::Plus(left, right),
+            Token::Minus => Expr::Minus(left, right),
+            Token::Times => Expr::Mult(left, right),
+            Token::Divide => Expr::Div(left, right),
+            Token::Pipe => Expr::Pipe(left, right),
+            Token::LessThan => Expr::Less(left, right),
+            Token::LessThanOrEq => Expr::LessEq(left, right),
+            Token::GreaterThan => Expr::Greater(left, right),
+            Token::GreaterThanOrEq => Expr::GreaterEq(left, right),
+            Token::Eq => Expr::Eq(left, right),
+            Token::NotEq => Expr::NotEq(left, right),
+            Token::Or => Expr::Or(left, right),
+            Token::And => Expr::And(left, right),
+            _ => unreachable!(),
+        }
+    }
 }
 
 pub enum Type {
