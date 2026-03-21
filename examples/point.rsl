@@ -4,16 +4,16 @@ typedef Point {
 
 fn sum(first: Point, second: Point) -> Point {
     let first_x = match first {
-        point(x: Int, y: Int) -> x;
+        point(x: Int, y: Int) -> x
     };
     let first_y = match first {
-        point(x: Int, y: Int) -> y;
+        point(x: Int, y: Int) -> y
     };
     let second_x = match second {
-        point(x: Int, y: Int) -> x;
+        point(x: Int, y: Int) -> x
     };
     let second_y = match second {
-        point(x: Int, y: Int) -> y;
+        point(x: Int, y: Int) -> y
     };
     return point(first_x + second_x, first_y + second_y);
 }
@@ -23,11 +23,11 @@ fn main() -> Int {
     let p2 = point(3, 4);
     let p3 = sum(p1, p2);
     let x = match p3 {
-        point(x: Int, y: Int) -> x;
-    }
+        point(x: Int, y: Int) -> x
+    };
     let y = match p3 {
-        point(x: Int, y: Int) -> y;
-    }
+        point(x: Int, y: Int) -> y
+    };
     echo Int x;
     echo Int y;
     return 0;

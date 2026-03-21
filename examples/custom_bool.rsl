@@ -15,14 +15,14 @@ fn convert_to_normal(x: CustomBool) -> Bool {
 fn custom_if_i64(cond: CustomBool, then_b: Int, else_b: Int) -> Int {
     return match cond {
         c_true() -> then_b,
-        c_false() -> false_b
+        c_false() -> else_b
     };
 }
 
 fn custom_if_f64(cond: CustomBool, then_b: Float, else_b: Float) -> Float {
     return match cond {
         c_true() -> then_b,
-        c_false() -> false_b
+        c_false() -> else_b
     };
 }
 
