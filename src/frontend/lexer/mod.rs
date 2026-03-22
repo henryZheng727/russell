@@ -108,20 +108,15 @@ fn next_token(program: &str) -> (Token, &str) {
 
 /// Discards any whitespace or comments at the start of `program`.
 fn eat_whitespace(program: &str) -> &str {
-    let trimmed = program.trim_start();
-    if !trimmed.starts_with("//") {
-        return trimmed;
+    let mut s = program.trim_start();
+    while s.starts_with("//") {
+        s = match s.find('\n') {
+            Some(i) => &s[i + 1..],
+            None => "",
+        };
+        s = s.trim_start();
     }
-
-    let mut after_comment = 0;
-    for (index, char) in trimmed.char_indices() {
-        if char == '\n' {
-            after_comment = index + 1;
-            break;
-        }
-    }
-
-    &trimmed[after_comment..]
+    s
 }
 
 fn read_num(program: &str) -> (Token, &str) {
