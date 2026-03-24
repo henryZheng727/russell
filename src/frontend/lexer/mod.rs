@@ -1,5 +1,8 @@
 pub mod token;
 
+#[cfg(test)]
+mod tests;
+
 use crate::frontend::lexer::token::{SpannedToken, Token};
 
 // reserved keywords
