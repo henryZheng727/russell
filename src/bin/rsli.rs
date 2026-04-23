@@ -1,27 +1,14 @@
 use std::env;
 use std::fs;
-use std::process::ExitCode;
 
 use russell::frontend::{lexer, parser};
 use russell::interpreter::treewalk;
 
-fn main() -> ExitCode {
+fn main() {
     // read the program
     let args: Vec<String> = env::args().collect();
-    let filename = match args.get(1) {
-        Some(name) => name,
-        None => {
-            eprintln!("FATAL ERROR: No file provided.");
-            return ExitCode::FAILURE;
-        }
-    };
-    let program = match fs::read_to_string(filename) {
-        Ok(program) => program,
-        Err(_) => {
-            eprintln!("FATAL ERROR: Cannot read the given file: {filename}.");
-            return ExitCode::FAILURE;
-        }
-    };
+    let filename = args.get(1).expect("FATAL ERROR: No file provided.");
+    let program = fs::read_to_string(filename).expect("FATAL ERROR: File cannot be read.");
 
     // lex the program
     let tokens = lexer::lex(&program);
