@@ -6,6 +6,7 @@ use crate::{
 };
 
 enum ArithOp { Plus, Minus, Mult, Div }
+enum BoolOp { Or, And }
 
 pub(super) fn interp_expr(expr: Expr, env: Rc<Env>) -> Rc<Value> {
     match expr {
@@ -28,8 +29,8 @@ pub(super) fn interp_expr(expr: Expr, env: Rc<Env>) -> Rc<Value> {
         Expr::GreaterEq(left, right) => todo!(),
         Expr::Eq(left, right) => todo!(),
         Expr::NotEq(left, right) => todo!(),
-        Expr::Or(left, right) => todo!(),
-        Expr::And(left, right) => todo!(),
+        Expr::Or(left, right) => interp_bool_binop(*left, *right, env, BoolOp::Or),
+        Expr::And(left, right) => interp_bool_binop(*left, *right, env, BoolOp::And),
         Expr::If(cond, then_expr, else_expr) => todo!(),
         Expr::Match(expr, arms) => todo!(),
     }
@@ -57,7 +58,7 @@ fn interp_bang(expr: Expr, env: Rc<Env>) -> Rc<Value> {
     }
 }
 
-fn interp_call(expr: Expr, env: Rc<Env>) -> Rc<Value> {
+fn interp_call(func: Expr, args: Vec<Expr>, env: Rc<Env>) -> Rc<Value> {
     todo!()
 }
 
@@ -76,6 +77,18 @@ fn interp_arith_binop(left: Expr, right: Expr, env: Rc<Env>, op: ArithOp) -> Rc<
             ArithOp::Minus => l - r,
             ArithOp::Mult => l * r,
             ArithOp::Div => l / r,
+        }).into(),
+        (l, r) => panic!("FATAL ERROR: type mismatch: {l:?} and {r:?}"),
+    }
+}
+
+fn interp_bool_binop(left: Expr, right: Expr, env: Rc<Env>, op: BoolOp) -> Rc<Value> {
+    let left_val = interp_expr(left, Rc::clone(&env));
+    let right_val = interp_expr(right, env);
+    match (&*left_val, &*right_val) {
+        (Value::Bool(l), Value::Bool(r)) => Value::Bool(match op {
+            BoolOp::Or => *l || *r,
+            BoolOp::And => *l && *r,
         }).into(),
         (l, r) => panic!("FATAL ERROR: type mismatch: {l:?} and {r:?}"),
     }
