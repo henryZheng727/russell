@@ -32,7 +32,7 @@ pub(super) fn interp_expr(expr: Expr, env: Rc<Env>) -> Rc<Value> {
         Expr::NotEq(left, right) => interp_cmp_binop(*left, *right, env, CmpOp::NotEq),
         Expr::Or(left, right) => interp_bool_binop(*left, *right, env, BoolOp::Or),
         Expr::And(left, right) => interp_bool_binop(*left, *right, env, BoolOp::And),
-        Expr::If(cond, then_expr, else_expr) => todo!(),
+        Expr::If(cond, then_expr, else_expr) => interp_if(*cond, *then_expr, *else_expr, env),
         Expr::Match(expr, arms) => todo!(),
     }
 }
@@ -116,5 +116,14 @@ fn interp_bool_binop(left: Expr, right: Expr, env: Rc<Env>, op: BoolOp) -> Rc<Va
             BoolOp::And => *l && *r,
         }).into(),
         (l, r) => panic!("FATAL ERROR: type mismatch: {l:?} and {r:?}"),
+    }
+}
+
+fn interp_if(cond: Expr, then_expr: Expr, else_expr: Expr, env: Rc<Env>) -> Rc<Value> {
+    let cond_val = interp_expr(cond, Rc::clone(&env));
+    match &*cond_val {
+        Value::Bool(true) => interp_expr(then_expr, env),
+        Value::Bool(false) => interp_expr(else_expr, env),
+        val => panic!("FATAL ERROR: expected boolean value, found {val:?}"),
     }
 }
