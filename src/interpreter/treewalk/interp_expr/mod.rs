@@ -1,8 +1,8 @@
-use std::rc::Rc;
+use std::{collections::HashMap, rc::Rc};
 
 use crate::{
-    frontend::parser::ast::Expr,
-    interpreter::treewalk::{types::Value, Env},
+    frontend::parser::ast::{Binding, Expr},
+    interpreter::treewalk::{Env, interp_fn::interp_fn, types::Value},
 };
 
 pub(super) fn interp_expr(expr: Expr, env: Rc<Env>) -> Rc<Value> {
@@ -55,8 +55,45 @@ fn interp_bang(expr: Expr, env: Rc<Env>) -> Rc<Value> {
     }
 }
 
+fn bind_args(env: Rc<Env>, params: Vec<Binding>, args: Vec<Expr>) -> Rc<Env> {
+    if params.len() != args.len() {
+        panic!("FATAL ERROR: expected {} arguments, found {}", params.len(), args.len());
+    }
+
+    let mut local_env = Rc::clone(&env);
+    for (binding, arg) in params.into_iter().zip(args) {
+        let arg_val = interp_expr(arg, Rc::clone(&local_env));
+        local_env = local_env.extend(binding.id, arg_val);
+    }
+
+    local_env
+}
+
 fn interp_call(func: Expr, args: Vec<Expr>, env: Rc<Env>) -> Rc<Value> {
-    todo!()
+    match &*interp_expr(func, Rc::clone(&env)) {
+        Value::Closure(closure_env, binding, body) => {
+            let local_env = bind_args(Rc::clone(closure_env), vec![*binding], args);
+            interp_expr(**body, local_env)
+        }
+
+        Value::Fn(bindings, stmts) => {
+            let local_env = bind_args(Rc::clone(&env), bindings, args);
+            interp_fn(*stmts, local_env, args)
+        }
+
+        Value::Constructor(name, adt_type, bindings) => {
+            if bindings.len() != args.len() {
+                panic!("FATAL ERROR: expected {} arguments, found {}", bindings.len(), args.len());
+            }
+            let mut field_vals = HashMap::new();
+            for (binding, arg) in bindings.iter().zip(args) {
+                field_vals.insert(binding.id, interp_expr(arg, Rc::clone(&env)));
+            }
+            Value::Adt(adt_type.clone(), name.clone(), field_vals).into()
+        }
+
+        val => panic!("FATAL ERROR: expected function value, found {val:?}"),
+    }
 }
 
 fn interp_arith_binop(
