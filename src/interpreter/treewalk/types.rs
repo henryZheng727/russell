@@ -36,6 +36,6 @@ pub(super) enum Value {
     Bool(bool),
     Closure(Rc<Env>, Binding, Box<Expr>),
     Constructor(String, Type, Vec<Binding>),
-    Fn(Vec<Binding>, Vec<Stmt>),
+    Fn(String, Vec<Binding>, Vec<Stmt>),
     Adt(Type, String, HashMap<String, Rc<Value>>),
 }

@@ -10,7 +10,7 @@ mod types;
 pub fn interp(defns: Vec<Defn>) {
     let global_env = process_global_env(defns);
     interp_expr::interp_expr(
-        Expr::Call(Box::new(Expr::Id("main".to_string())), Vec::new()),
+        &Expr::Call(Box::new(Expr::Id("main".to_string())), Vec::new()),
         global_env,
     );
 }
@@ -45,5 +45,5 @@ fn add_typedef(env: Rc<Env>, adt_type: Type, bindings: Vec<(String, Vec<Binding>
 /// add a function definition to the environment. this involves adding the function name and its
 /// implementation to the environment.
 fn add_fn_def(env: Rc<Env>, id: String, bindings: Vec<Binding>, stmts: Vec<Stmt>) -> Rc<Env> {
-    env.extend(id, Value::Fn(bindings, stmts).into())
+    env.extend(id.clone(), Value::Fn(id, bindings, stmts).into())
 }

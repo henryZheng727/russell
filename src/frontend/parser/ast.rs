@@ -17,7 +17,7 @@ pub enum Stmt {
     Return(Expr),       // return <expr>;
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Expr {
     // atomic expressions
     Int(i64),
@@ -90,7 +90,7 @@ pub enum Type {
     Fn(Box<Type>, Box<Type>),
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Binding {
     pub id: String,
     pub typ: Type,
